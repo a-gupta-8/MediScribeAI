@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,67 +6,180 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Speech-to-Text Transcription</title>
     <link rel="stylesheet" href="/css/style.css">
+    <style>
+        /* Styling for Transcription Box */
+        .transcription-box {
+            width: 80%;
+            min-height: 150px;
+            padding: 15px;
+            margin: 10px auto;
+            border: 2px solid #a991d4;
+            background: #f4f1ff;
+            font-size: 1.2em;
+            border-radius: 8px;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+            max-height: 400px;
+        }
+
+
+        /* Audio Wave Effect */
+        .wave {
+            width: 50px;
+            height: 10px;
+            background-color: #a991d4;
+            margin: auto;
+            display: none;
+            animation: wave-animation 1.2s infinite alternate;
+        }
+
+
+        @keyframes wave-animation {
+            from { transform: scaleY(0.5); }
+            to { transform: scaleY(1.5); }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <h1>Speech-to-Text Transcription</h1>
         <p>Click the button and start speaking.</p>
 
+
         <!-- React will render the transcription button here -->
         <div id="root"></div>
+
+
+        <!-- Audio Wave Effect -->
+        <div id="wave" class="wave"></div>
+
 
         <a href="/" class="btn">Back to Home</a>
     </div>
 
-    <!-- Load React & ReactDOM from CDN -->
+
+    <!-- Load React -->
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
 
-    <!-- Your React Code Inside the Script -->
+
     <script>
-        const { useState, useRef } = React;
+        const { useState, useEffect, useRef } = React;
+
 
         function TranscriptionButton() {
-            const [transcript, setTranscript] = useState("");
+            const [transcript, setTranscript] = useState("Waiting for speech...");
+            const [isRecording, setIsRecording] = useState(false);
             const recognitionRef = useRef(null);
 
-            const startRecording = () => {
+
+            useEffect(() => {
                 if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
                     alert("Your browser does not support speech recognition.");
                     return;
                 }
 
-                const SpeechRecognition =
-                    window.SpeechRecognition || window.webkitSpeechRecognition;
+
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
                 const recognition = new SpeechRecognition();
 
-                recognition.continuous = false;
-                recognition.interimResults = false;
-                recognition.lang = "en-US";
 
-                recognition.onstart = () => {
-                    console.log("Recording started...");
-                };
+                recognition.continuous = true;
+                recognition.interimResults = true;
+                recognition.lang = "en-US"; // Default to English
+
 
                 recognition.onresult = (event) => {
-                    setTranscript(event.results[0][0].transcript);
+                    let finalTranscript = "";
+                    for (let i = 0; i < event.results.length; i++) {
+                        let result = event.results[i];
+                        let sentence = result[0].transcript;
+
+
+                        // Auto-capitalize first letter and add punctuation
+                        sentence = sentence.charAt(0).toUpperCase() + sentence.slice(1);
+                        if (!sentence.endsWith(".") && !sentence.endsWith("?") && !sentence.endsWith("!")) {
+                            sentence += ".";
+                        }
+
+
+                        finalTranscript += sentence + " ";
+                    }
+                    setTranscript(finalTranscript);
+
+
+                    // Auto-scroll
+                    setTimeout(() => {
+                        const outputDiv = document.getElementById("output");
+                        outputDiv.scrollTop = outputDiv.scrollHeight;
+                    }, 50);
                 };
+
 
                 recognition.onerror = (event) => {
                     setTranscript("Error: " + event.error);
                 };
 
+
                 recognitionRef.current = recognition;
-                recognition.start();
+            }, []);
+
+
+            const toggleRecording = () => {
+                if (isRecording) {
+                    recognitionRef.current.stop();
+                    setIsRecording(false);
+                    document.getElementById("wave").style.display = "none";
+                } else {
+                    recognitionRef.current.start();
+                    setIsRecording(true);
+                    setTranscript("Listening...");
+                    document.getElementById("wave").style.display = "block";
+                }
             };
 
+
+            const clearTranscript = () => {
+                setTranscript("Waiting for speech...");
+            };
+
+
+            const downloadTranscript = () => {
+                const blob = new Blob([transcript], { type: "text/plain" });
+                const a = document.createElement("a");
+                a.href = URL.createObjectURL(blob);
+                a.download = "transcription.txt";
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            };
+
+
             return React.createElement("div", null,
-                React.createElement("button", { onClick: startRecording, className: "btn" }, "Start Transcription"),
-                React.createElement("p", { id: "output" }, transcript)
+                React.createElement("button", {
+                    onClick: toggleRecording,
+                    className: "btn"
+                }, isRecording ? "Stop Recording" : "Start Recording"),
+                React.createElement("button", {
+                    onClick: clearTranscript,
+                    className: "btn",
+                    style: { marginLeft: "10px", backgroundColor: "#ff6961" }
+                }, "Clear"),
+                React.createElement("button", {
+                    onClick: downloadTranscript,
+                    className: "btn",
+                    style: { marginLeft: "10px", backgroundColor: "#4CAF50" }
+                }, "Download"),
+                React.createElement("div", { id: "output", className: "transcription-box" }, transcript)
             );
         }
+
 
         ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(TranscriptionButton));
     </script>
 </body>
 </html>
+
+

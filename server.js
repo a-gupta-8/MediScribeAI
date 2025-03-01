@@ -1,33 +1,40 @@
-
 const express = require('express');
 const path = require('path');
 const { OpenAI } = require('openai');
 require('dotenv').config(); // For environment variables
 
+
 const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY
+    apiKey: "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"
 });
+
 
 const app = express();
 app.set('view engine', 'ejs');
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.urlencoded({ extended: true })); // For form data
 
+
 let patients = []; // Temporary in-memory storage
+
+
 
 
 app.get('/', (req, res) => {
     res.render('index'); // This assumes you have a 'landing.ejs' file in your 'views' folder
 });
 
+
 // Get Symptom Diagnosis
 app.post('/patients/get-symptom/:id', async (req, res) => {
     const patientId = parseInt(req.params.id);
     const patient = patients.find(p => p.id === patientId);
 
+
     if (!patient) {
         return res.status(404).send('Patient not found');
     }
+
 
     try {
         // Call OpenAI API with patient description
@@ -41,11 +48,13 @@ app.post('/patients/get-symptom/:id', async (req, res) => {
             temperature: 0.7
         });
 
+
         // Extract the response
         const diagnosis = response.choices[0].message.content;
-        
+       
         // Return top 3 diagnoses (you might want to refine parsing)
         const conditions = diagnosis.split('\n').slice(0, 3);
+
 
         res.json({ conditions });
     } catch (error) {
@@ -54,11 +63,13 @@ app.post('/patients/get-symptom/:id', async (req, res) => {
     }
 });
 
+
 // Render the patients page
 // Patients Page - View all patients
 app.get('/patients', (req, res) => {
     res.render('patients', { patients });
 });
+
 
 // Add a new patient
 app.post('/patients/add', (req, res) => {
@@ -67,12 +78,14 @@ app.post('/patients/add', (req, res) => {
     res.redirect('/patients');
 });
 
+
 // Delete a patient
 app.post('/patients/delete/:id', (req, res) => {
     const patientId = parseInt(req.params.id);
     patients = patients.filter(patient => patient.id !== patientId);
     res.redirect('/patients');
 });
+
 
 // Update patient details (edit page)
 app.get('/patients/edit/:id', (req, res) => {
@@ -83,6 +96,7 @@ app.get('/patients/edit/:id', (req, res) => {
         res.redirect('/patients');
     }
 });
+
 
 app.get('/transcribe', (req, res) => {
     res.render('transcribe');
@@ -97,5 +111,11 @@ app.post('/patients/update/:id', (req, res) => {
     res.redirect('/patients');
 });
 
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+
+
+
+
+

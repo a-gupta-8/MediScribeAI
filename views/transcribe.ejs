@@ -1,0 +1,45 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transcription</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Speech-to-Text Transcription</h1>
+        <p>Click the button and start speaking.</p>
+        <button id="start" class="btn">Start Recording</button>
+        <p id="output"></p>
+        <a href="/" class="btn">Back to Home</a>
+    </div>
+
+    <script>
+        const startButton = document.getElementById('start');
+        const output = document.getElementById('output');
+
+        if ('webkitSpeechRecognition' in window) {
+            const recognition = new webkitSpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+
+            startButton.onclick = () => {
+                recognition.start();
+            };
+
+            recognition.onresult = (event) => {
+                output.textContent = event.results[0][0].transcript;
+            };
+
+            recognition.onerror = (event) => {
+                output.textContent = "Error: " + event.error;
+            };
+        } else {
+            output.textContent = "Speech recognition not supported in this browser.";
+        }
+    </script>
+</body>
+</html>

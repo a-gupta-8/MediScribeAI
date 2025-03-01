@@ -1,0 +1,22 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Patient</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Edit Patient</h1>
+        <form action="/patients/update/<%= patient.id %>" method="POST">
+            <input type="text" name="name" value="<%= patient.name %>" required>
+            <input type="number" name="age" value="<%= patient.age %>" required>
+            <input type="text" name="condition" value="<%= patient.condition %>" required>
+            <button type="submit" class="btn">Update</button>
+        </form>
+        <a href="/patients" class="btn">Cancel</a>
+    </div>
+</body>
+</html>

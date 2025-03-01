@@ -1,0 +1,38 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Records</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Patient Records</h1>
+
+        <!-- Form to Add a New Patient -->
+        <form action="/patients/add" method="POST">
+            <input type="text" name="name" placeholder="Patient Name" required>
+            <input type="number" name="age" placeholder="Age" required>
+            <input type="text" name="condition" placeholder="Medical Condition" required>
+            <button type="submit" class="btn">Add Patient</button>
+        </form>
+
+        <h2>Patient List</h2>
+        <ul>
+            <% patients.forEach(patient => { %>
+                <li>
+                    <strong><%= patient.name %></strong>, Age: <%= patient.age %>, Condition: <%= patient.condition %>
+                    <form action="/patients/delete/<%= patient.id %>" method="POST" style="display:inline;">
+                        <button type="submit" class="btn delete">Delete</button>
+                    </form>
+                    <a href="/patients/edit/<%= patient.id %>" class="btn">Edit</a>
+                </li>
+            <% }); %>
+        </ul>
+
+        <a href="/" class="btn">Back to Home</a>
+    </div>
+</body>
+</html>

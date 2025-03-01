@@ -1,45 +1,71 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Transcription</title>
+    <title>Speech-to-Text Transcription</title>
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
     <div class="container">
         <h1>Speech-to-Text Transcription</h1>
         <p>Click the button and start speaking.</p>
-        <button id="start" class="btn">Start Recording</button>
-        <p id="output"></p>
+
+        <!-- React will render the transcription button here -->
+        <div id="root"></div>
+
         <a href="/" class="btn">Back to Home</a>
     </div>
 
+    <!-- Load React & ReactDOM from CDN -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+
+    <!-- Your React Code Inside the Script -->
     <script>
-        const startButton = document.getElementById('start');
-        const output = document.getElementById('output');
+        const { useState, useRef } = React;
 
-        if ('webkitSpeechRecognition' in window) {
-            const recognition = new webkitSpeechRecognition();
-            recognition.continuous = false;
-            recognition.interimResults = false;
-            recognition.lang = 'en-US';
+        function TranscriptionButton() {
+            const [transcript, setTranscript] = useState("");
+            const recognitionRef = useRef(null);
 
-            startButton.onclick = () => {
+            const startRecording = () => {
+                if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
+                    alert("Your browser does not support speech recognition.");
+                    return;
+                }
+
+                const SpeechRecognition =
+                    window.SpeechRecognition || window.webkitSpeechRecognition;
+                const recognition = new SpeechRecognition();
+
+                recognition.continuous = false;
+                recognition.interimResults = false;
+                recognition.lang = "en-US";
+
+                recognition.onstart = () => {
+                    console.log("Recording started...");
+                };
+
+                recognition.onresult = (event) => {
+                    setTranscript(event.results[0][0].transcript);
+                };
+
+                recognition.onerror = (event) => {
+                    setTranscript("Error: " + event.error);
+                };
+
+                recognitionRef.current = recognition;
                 recognition.start();
             };
 
-            recognition.onresult = (event) => {
-                output.textContent = event.results[0][0].transcript;
-            };
-
-            recognition.onerror = (event) => {
-                output.textContent = "Error: " + event.error;
-            };
-        } else {
-            output.textContent = "Speech recognition not supported in this browser.";
+            return React.createElement("div", null,
+                React.createElement("button", { onClick: startRecording, className: "btn" }, "Start Transcription"),
+                React.createElement("p", { id: "output" }, transcript)
+            );
         }
+
+        ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(TranscriptionButton));
     </script>
 </body>
 </html>

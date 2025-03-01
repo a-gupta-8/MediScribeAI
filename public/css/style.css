@@ -75,3 +75,16 @@ li {
     justify-content: space-between;
     align-items: center;
 }
+
+textarea {
+    padding: 10px;
+    margin: 5px;
+    width: 80%;
+    height: 100px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+textarea:focus {
+    border-color: #4a148c;
+}

@@ -5,7 +5,7 @@ require('dotenv').config(); // For environment variables
 
 
 const openai = new OpenAI({
-    apiKey: "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"
+    apiKey: "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"
 });
 
 
@@ -53,7 +53,7 @@ app.post('/patients/get-symptom/:id', async (req, res) => {
         const diagnosis = response.choices[0].message.content;
        
         // Return top 3 diagnoses (you might want to refine parsing)
-        const conditions = diagnosis.split('\n').slice(0, 3);
+        const conditions = diagnosis.split('\n').slice(0, 5);
 
 
         res.json({ conditions });

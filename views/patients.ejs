@@ -21,32 +21,30 @@
         </form>
 
         <h2>Patient List</h2>
-        <div class = flexcont>
         <ul>
             <% patients.forEach(patient => { %>
-                <div class = flexcont>
                 <li>
-                    <div class = flextext><strong>Name:</strong> <%= patient.name %></div> 
-                    <div class = flextext><strong>Age:</strong> <%= patient.age %></div> 
-                    <div class = flextext><strong>Condition:</strong> <%= patient.condition %></div>
-                    <div class = flextext><p><strong>Description:</strong> <%= patient.description %></p></div>
-                    <div class = flextext><div id="conditions-<%= patient.id %>"></div>
+                    <div class="patient-details">
+                        <div class="flextext"><strong>Name:</strong> <%= patient.name %></div> 
+                        <div class="flextext"><strong>Age:</strong> <%= patient.age %></div> 
+                        <div class="flextext"><strong>Condition:</strong> <%= patient.condition %></div>
+                        <div class="flextext"><strong>Description:</strong> <%= patient.description %></div>
+                        <div id="conditions-<%= patient.id %>"></div>
+                    </div>
 
-                <div class = flexrow>
-                    <div> <form action="/patients/delete/<%= patient.id %>" method="POST" style="display:inline;"> </div>
-                    <div> <button type="submit" class="btn delete">Delete</button> </form> </div>
-                    <div><a href="/patients/edit/<%= patient.id %>" class="btn">Edit</a></div>
-                </div>
-                <div class = flextextspecial><button class="btn" onclick="getSymptom('<%= patient.id %>')">Get Diagnosis</button></div>
+                    <div class="flexrow">
+                        <form action="/patients/delete/<%= patient.id %>" method="POST" style="display:inline;">
+                            <button type="submit" class="btn delete">Delete</button>
+                        </form>
+                        <a href="/patients/edit/<%= patient.id %>" class="btn">Edit</a>
+                        <button class="btn" onclick="getSymptom('<%= patient.id %>')">Get Diagnosis</button>
+                    </div>
                 </li>
-            </div>
             <% }); %>
-            <a href="/" class="btn">Back to Home</a>
-        </div>
         </ul>
+
+        <a href="/" class="btn back-home">Back to Home</a>
     </div>
-
-
 
     <script>
         async function getSymptom(patientId) {

@@ -5,7 +5,7 @@ require('dotenv').config(); // For environment variables
 
 
 const openai = new OpenAI({
-    apiKey: "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"
+    apiKey: "nooo"
 });
 
 

@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -22,6 +21,24 @@
             box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
             overflow-y: auto;
             max-height: 400px;
+        }
+
+
+        /* Summary Box */
+        .summary-box { /* [NEW] */
+            width: 80%;
+            min-height: 100px;
+            padding: 15px;
+            margin: 10px auto;
+            border: 2px solid #ffa500;
+            background: #fff4e1;
+            font-size: 1.1em;
+            border-radius: 8px;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+            max-height: 300px;
         }
 
 
@@ -72,6 +89,8 @@
         function TranscriptionButton() {
             const [transcript, setTranscript] = useState("Waiting for speech...");
             const [isRecording, setIsRecording] = useState(false);
+            const [summary, setSummary] = useState(""); // [NEW] State for summary
+            const [loading, setLoading] = useState(false); // [NEW] State for loading
             const recognitionRef = useRef(null);
 
 
@@ -108,13 +127,6 @@
                         finalTranscript += sentence + " ";
                     }
                     setTranscript(finalTranscript);
-
-
-                    // Auto-scroll
-                    setTimeout(() => {
-                        const outputDiv = document.getElementById("output");
-                        outputDiv.scrollTop = outputDiv.scrollHeight;
-                    }, 50);
                 };
 
 
@@ -143,6 +155,7 @@
 
             const clearTranscript = () => {
                 setTranscript("Waiting for speech...");
+                setSummary(""); // [NEW] Clear summary when transcript is cleared
             };
 
 
@@ -154,6 +167,66 @@
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
+            };
+
+
+            // [NEW] Function to Generate Summary using OpenAI
+            const generateSummary = async () => {
+                if (transcript === "Waiting for speech..." || transcript.trim() === "") {
+                    alert("No text available for summarization.");
+                    return;
+                }
+
+
+                setLoading(true);
+
+            function sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+
+                try {
+                
+                    const response =  fetch("https://api.openai.com/v1/chat/completions", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": `Bearer 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
+`                       // Replace with actual OpenAI API Key
+                        },
+                        
+                        body: JSON.stringify({
+                            model: "gpt-3.5-turbo",
+                            messages: [
+                                { role: "system", content: "You are an AI that summarizes text in a structured format." },
+                                { role: "user", content: `Summarize the following text:\n${transcript}` }
+                            ],
+                            temperature: 0.5
+                        })
+                    });
+                    await sleep(6666);
+                    const summary = response.choices[0].message.content;
+                    res.json({ summary });
+                    
+                } catch (error) {
+        console.error('Error calling OpenAI API:', error);
+        res.status(500).send('Error retrieving diagnosis');
+    }
+                    // const data = await response.json();
+
+
+                //     if (!data.choices || data.choices.length === 0) {
+
+                //         throw new Error("No valid response from OpenAI.");
+                //     }
+
+
+                //     setSummary(data.choices[0].message.content.trim());
+                // } catch (error) {
+                //     console.error("Summarization Error:", error);
+                //     setSummary("Error summarizing text. Please check the console for details.");
+                // } finally {
+                //     setLoading(false);
+                // }
             };
 
 
@@ -172,7 +245,14 @@
                     className: "btn",
                     style: { marginLeft: "10px", backgroundColor: "#4CAF50" }
                 }, "Download"),
-                React.createElement("div", { id: "output", className: "transcription-box" }, transcript)
+                React.createElement("button", {
+                    onClick: generateSummary,
+                    className: "btn",
+                    disabled: loading, // Disable button while loading
+                    style: { marginLeft: "10px", backgroundColor: "#ffa500" }
+                }, loading ? "Summarizing..." : "Summarize"),
+                React.createElement("div", { id: "output", className: "transcription-box" }, transcript),
+                summary && React.createElement("div", { id: "summary", className: "summary-box" }, summary) // [NEW] Summary Box
             );
         }
 
@@ -181,5 +261,3 @@
     </script>
 </body>
 </html>
-
-

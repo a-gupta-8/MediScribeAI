@@ -23,9 +23,8 @@
             max-height: 400px;
         }
 
-
         /* Summary Box */
-        .summary-box { /* [NEW] */
+        .summary-box {
             width: 80%;
             min-height: 100px;
             padding: 15px;
@@ -41,7 +40,6 @@
             max-height: 300px;
         }
 
-
         /* Audio Wave Effect */
         .wave {
             width: 50px;
@@ -52,10 +50,51 @@
             animation: wave-animation 1.2s infinite alternate;
         }
 
-
         @keyframes wave-animation {
             from { transform: scaleY(0.5); }
             to { transform: scaleY(1.5); }
+        }
+
+        /* Button Styling */
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            font-size: 16px;
+            margin: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .btn-record {
+            background-color: #6a5acd;
+            color: white;
+        }
+
+        .btn-summary {
+            background-color: #ffa500;
+            color: white;
+        }
+
+        .btn-clear {
+            background-color: #ff6961;
+            color: white;
+        }
+
+        .btn-download {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .btn:hover {
+            opacity: 0.8;
+        }
+
+        /* Centering Content */
+        .container {
+            text-align: center;
+            padding: 20px;
         }
     </style>
 </head>
@@ -64,35 +103,24 @@
         <h1>Speech-to-Text Transcription</h1>
         <p>Click the button and start speaking.</p>
 
-
-        <!-- React will render the transcription button here -->
         <div id="root"></div>
-
-
-        <!-- Audio Wave Effect -->
-        <div id="wave" class="wave"></div>
-
 
         <a href="/" class="btn">Back to Home</a>
     </div>
-
 
     <!-- Load React -->
     <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
 
-
     <script>
         const { useState, useEffect, useRef } = React;
-
 
         function TranscriptionButton() {
             const [transcript, setTranscript] = useState("Waiting for speech...");
             const [isRecording, setIsRecording] = useState(false);
-            const [summary, setSummary] = useState(""); // [NEW] State for summary
-            const [loading, setLoading] = useState(false); // [NEW] State for loading
+            const [summary, setSummary] = useState("");
+            const [loading, setLoading] = useState(false);
             const recognitionRef = useRef(null);
-
 
             useEffect(() => {
                 if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
@@ -100,15 +128,12 @@
                     return;
                 }
 
-
                 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
                 const recognition = new SpeechRecognition();
 
-
                 recognition.continuous = true;
                 recognition.interimResults = true;
-                recognition.lang = "en-US"; // Default to English
-
+                recognition.lang = "en-US";
 
                 recognition.onresult = (event) => {
                     let finalTranscript = "";
@@ -116,28 +141,20 @@
                         let result = event.results[i];
                         let sentence = result[0].transcript;
 
-
-                        // Auto-capitalize first letter and add punctuation
                         sentence = sentence.charAt(0).toUpperCase() + sentence.slice(1);
-                        if (!sentence.endsWith(".") && !sentence.endsWith("?") && !sentence.endsWith("!")) {
-                            sentence += ".";
-                        }
-
+                        if (!sentence.endsWith(".")) sentence += ".";
 
                         finalTranscript += sentence + " ";
                     }
                     setTranscript(finalTranscript);
                 };
 
-
                 recognition.onerror = (event) => {
                     setTranscript("Error: " + event.error);
                 };
 
-
                 recognitionRef.current = recognition;
             }, []);
-
 
             const toggleRecording = () => {
                 if (isRecording) {
@@ -152,12 +169,36 @@
                 }
             };
 
+            const generateSummary = async () => {
+                if (!transcript || transcript === "Waiting for speech...") {
+                    alert("No text available for summarization.");
+                    return;
+                }
+
+                setLoading(true);
+
+                try {
+                    const response = await fetch("/transcribe/summarize", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ transcript })
+                    });
+
+                    const data = await response.json();
+                    if (!data.summary) throw new Error("No valid response from OpenAI.");
+                    setSummary(data.summary);
+                } catch (error) {
+                    console.error("Summarization Error:", error);
+                    setSummary("Error summarizing text.");
+                } finally {
+                    setLoading(false);
+                }
+            };
 
             const clearTranscript = () => {
                 setTranscript("Waiting for speech...");
-                setSummary(""); // [NEW] Clear summary when transcript is cleared
+                setSummary("");
             };
-
 
             const downloadTranscript = () => {
                 const blob = new Blob([transcript], { type: "text/plain" });
@@ -169,93 +210,15 @@
                 document.body.removeChild(a);
             };
 
-
-            // [NEW] Function to Generate Summary using OpenAI
-            const generateSummary = async () => {
-                if (transcript === "Waiting for speech..." || transcript.trim() === "") {
-                    alert("No text available for summarization.");
-                    return;
-                }
-
-
-                setLoading(true);
-
-            function sleep(ms) {
-                return new Promise(resolve => setTimeout(resolve, ms));
-            }
-
-                try {
-                
-                    const response =  fetch("https://api.openai.com/v1/chat/completions", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            "Authorization": `Bearer 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
-`                       // Replace with actual OpenAI API Key
-                        },
-                        
-                        body: JSON.stringify({
-                            model: "gpt-3.5-turbo",
-                            messages: [
-                                { role: "system", content: "You are an AI that summarizes text in a structured format." },
-                                { role: "user", content: `Summarize the following text:\n${transcript}` }
-                            ],
-                            temperature: 0.5
-                        })
-                    });
-                    await sleep(6666);
-                    const summary = response.choices[0].message.content;
-                    res.json({ summary });
-                    
-                } catch (error) {
-        console.error('Error calling OpenAI API:', error);
-        res.status(500).send('Error retrieving diagnosis');
-    }
-                    // const data = await response.json();
-
-
-                //     if (!data.choices || data.choices.length === 0) {
-
-                //         throw new Error("No valid response from OpenAI.");
-                //     }
-
-
-                //     setSummary(data.choices[0].message.content.trim());
-                // } catch (error) {
-                //     console.error("Summarization Error:", error);
-                //     setSummary("Error summarizing text. Please check the console for details.");
-                // } finally {
-                //     setLoading(false);
-                // }
-            };
-
-
             return React.createElement("div", null,
-                React.createElement("button", {
-                    onClick: toggleRecording,
-                    className: "btn"
-                }, isRecording ? "Stop Recording" : "Start Recording"),
-                React.createElement("button", {
-                    onClick: clearTranscript,
-                    className: "btn",
-                    style: { marginLeft: "10px", backgroundColor: "#ff6961" }
-                }, "Clear"),
-                React.createElement("button", {
-                    onClick: downloadTranscript,
-                    className: "btn",
-                    style: { marginLeft: "10px", backgroundColor: "#4CAF50" }
-                }, "Download"),
-                React.createElement("button", {
-                    onClick: generateSummary,
-                    className: "btn",
-                    disabled: loading, // Disable button while loading
-                    style: { marginLeft: "10px", backgroundColor: "#ffa500" }
-                }, loading ? "Summarizing..." : "Summarize"),
+                React.createElement("button", { onClick: toggleRecording, className: "btn btn-record" }, isRecording ? "Stop Recording" : "Start Recording"),
+                React.createElement("button", { onClick: generateSummary, className: "btn btn-summary", disabled: loading }, loading ? "Summarizing..." : "Summarize"),
+                React.createElement("button", { onClick: clearTranscript, className: "btn btn-clear" }, "Clear"),
+                React.createElement("button", { onClick: downloadTranscript, className: "btn btn-download" }, "Download"),
                 React.createElement("div", { id: "output", className: "transcription-box" }, transcript),
-                summary && React.createElement("div", { id: "summary", className: "summary-box" }, summary) // [NEW] Summary Box
+                summary && React.createElement("div", { id: "summary", className: "summary-box" }, summary)
             );
         }
-
 
         ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(TranscriptionButton));
     </script>
